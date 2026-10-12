@@ -5,6 +5,29 @@
 | **Vũ Thành Huy** |  Draw test graph, structure GitHub repository, research BFS & Adjacency List, hand-trace shortest path algorithm, compile report. | 100% |
 | **Lê Thiện Luân** | research Iterative DFS using Stack, hand-trace Cycle Detection algorithm. | 100% |
 
+## Group Progress (Week 1)
+
+**1. Problem Restatement**
+The objective of this project is to develop a foundational "Graph Traversal Toolkit" capable of representing both directed and undirected graphs. We are required to implement two core traversal algorithms: Iterative Depth-First Search (using an explicit stack) and Breadth-First Search (using a queue). The toolkit will be applied to solve two practical problems: detecting cycles in a directed graph using DFS state-tracking, and computing the shortest path in an unweighted network using BFS. Finally, we must empirically validate the theoretical $O(V + E)$ time complexity and explain the behavioral differences between BFS and DFS on a real-world dataset.
+
+**2. Chosen Approach and Data Structures**
+* **Graph Representation:** We chose the **Adjacency List** (`std::vector<int> adj[V]`) as our core data structure. This structure is highly memory-efficient for real-world sparse graphs and optimizes the neighbor-lookup process, ensuring both algorithms can strictly achieve the $O(V + E)$ time complexity.
+* **DFS Implementation:** We will strictly avoid recursion. Instead, we will use a `std::stack` to simulate the call stack manually. To detect cycles (back-edges), we will implement a 3-color state array (White = Unvisited, Gray = In Stack, Black = Fully Visited).
+* **BFS Implementation:** We will use a `std::queue` to process nodes level by level. To compute the shortest path, we will maintain a `parent[]` array to track the discovery path, allowing us to backtrack from the destination to the source.
+
+**3. Test Plan**
+To rigorously verify correctness and performance, our testing strategy includes:
+* **Hand-traceable Tests:** We have designed a 6-node directed graph (containing both a cycle and multiple paths). We have manually traced the stack/queue states on paper and will use this exact graph to assert our code's output in Week 2.
+* **Edge Cases:** We will test boundary conditions including empty graphs (0 nodes), single-node graphs, disconnected components, and graphs with self-loops.
+* **Real Dataset & Large-scale Benchmark:** We will construct a small social/road network to contrast BFS and DFS pathfinding logic. Additionally, we will generate massive random graphs to benchmark the execution time and empirically prove the $O(V + E)$ boundary.
+
+**4. Syllabus Mapping**
+This project directly exercises the following topics from the course syllabus:
+* **Graphs:** Adjacency list representation, DFS (Iterative), BFS, Cycle Detection, Shortest Path.
+* **Stacks & Queues (L8):** Explicit stack manipulation (LIFO) and Queue operations (FIFO).
+* **Complexity (L2):** Theoretical vs. Empirical analysis of $O(V + E)$.
+
+
 ## Individual Teach-back (Vũ Thành Huy)
 
 **1. Hand-traceable Example (BFS & Shortest Path)**
