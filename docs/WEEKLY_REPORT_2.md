@@ -284,7 +284,6 @@ At the start of each iteration of the loop `while (!st.empty())` (Line 75), the 
 
 ---
 
----
 
 # Academic Report: Time & Space Complexity Proof and Teach-Back on BFS & Shortest Path (VU THANH HUY)
 
@@ -369,88 +368,156 @@ $$S(V, E) = O(V) + O(V) = O(V) \text{ auxiliary } \implies O(V + E) \text{ inclu
 
 ---
 
+## PART 2: INDIVIDUAL TEACH-BACK & CODE SELF-EXPLANATION
+
+### 1. Line-level Code Explanation
+
+The method `Graph::bfsShortestPath` executes breadth-first traversal using `std::queue` and reconstructs the unweighted shortest path via the `parent[]` predecessor tree:
+
+```cpp
+112: bool bfsShortestPath(const string& startName, const string& targetName,
+113:                      vector<string>& order, vector<string>& path, int& shortestDist) {
+114:     order.clear();
+115:     path.clear();
+116:     shortestDist = -1;
+117:     if (V == 0) return false;
+```
+Lines 112–117: Function signature accepting source, destination, and output containers. Clears output vectors and handles the empty graph ($V = 0$) edge case immediately to prevent out-of-bounds errors on state arrays.
+
+```cpp
+119:     int start = getIndex(startName);
+120:     int target = getIndex(targetName);
+121:     if (start == -1 || target == -1) return false;
+```
+Lines 119–121: Maps string vertex names to internal integer indices. If either the source or target vertex does not exist, the function terminates safely by returning false.
+
+```cpp
+123:     // State tracking arrays
+124:     vector<bool> visited(V, false);
+125:     vector<int> parent(V, -1);
+126:     vector<int> dist(V, -1);
+127:     queue<int> q;
+```
+
+Lines 123–127: Allocates BFS state structures:
+- visited: Prevents re-enqueueing already discovered vertices (avoids infinite loops).
+- parent: Stores the immediate predecessor vertex that first discovered $u$.
+- dist: Stores the minimum edge count from start to $u$.
+- q: Standard FIFO queue managing the breadth-first frontier layer by layer.
+
+```cpp
+129:     // Initialize source vertex (Level 0)
+130:     visited[start] = true;
+131:     dist[start] = 0;
+```
+
+Lines 129–132: Root Initialization (Level 0). Marks start as visited at distance $0$ and pushes it into the queue to initiate expansion.
+
+```cpp
+134:     while (!q.empty()) {
+135:         int u = q.front();
+136:         q.pop();
+137:         order.push_back(names[u]);
+```
+
+Lines 134–137: Extracts the oldest vertex $u$ from the front of the queue (q.front()) and removes it (q.pop()). Appends names[u] to order to record the exact visitation sequence.
+
+```cpp
+139:         for (int v : adj[u]) {
+140:             if (!visited[v]) {
+141:                 visited[v] = true;
+142:                 dist[v] = dist[u] + 1;
+143:                 parent[v] = u;
+144:                 q.push(v);
+145:             }
+146:         }
+147:     }
+```
+
+Lines 139–147 (Frontier Expansion):
+- Iterates over every outgoing neighbor $v \in \text{adj}[u]$.
+- If $v$ is unvisited (!visited[v]):
++ Line 141: Marks visited[v] = true immediately before pushing to prevent duplicate queue entries.
++ Lines 142-143: Sets level distance dist[v] = dist[u] + 1 and records the shortest path tree edge parent[v] = u.
++ Line 144: Enqueues $v$ to the back of q for next-layer processing.
+
+```cpp
+149:     // Unreachable destination check
+150:     if (!visited[target]) return false;
+```
+
+Lines 149–150: Critical Edge-Case Check. If target was never reached during BFS (!visited[target]), there is no valid path. Returns false to avoid infinite loops during backtracking.
+
+```cpp
+152:     // Shortest path reconstruction via parent[] array
+153:     shortestDist = dist[target];
+154:     for (int curr = target; curr != -1; curr = parent[curr]) {
+155:         path.push_back(names[curr]);
+156:     }
+157:     reverse(path.begin(), path.end());
+158:     return true;
+159: }
+```
+
+Lines 152–159 (Backtracking):
+- Traces backward from target to start by following curr = parent[curr] until hitting the root sentinel -1.
+- Reverses path so the sequence reads forward from startName to targetName and returns true.
+
+### 2. Loop Invariant Analysis for the FIFO Queue (`std::queue`)
+
+#### a. Loop Invariant Statement (Concise & Intuitive)
+At the start of each iteration of the loop `while (!q.empty())` (Line 134), the following three conditions **always hold simultaneously**:
+
+1. **Queue Monotonicity (Two-Layer Property):** If the queue $q = [v_1, v_2, \dots, v_k]$ is non-empty, the distances of vertices from front to back are monotonically non-decreasing and span **at most two consecutive distance layers**:
+
+$$\text{dist}[v_1] \le \text{dist}[v_2] \le \dots \le \text{dist}[v_k] \le \text{dist}[v_1] + 1$$
+
+2. **Exact Shortest-Path Optimality of Visited Vertices:** Every vertex $x \in V$ with `visited[x] == true` has been assigned its true shortest-path edge count $\text{dist}[x] = \delta(\text{start}, x)$, and all vertices with $\delta(\text{start}, y) < \text{dist}[v_1]$ have already been completely dequeued and expanded.
+
+3. **Valid Predecessor Tree (`parent[]`):** For every discovered vertex $x \neq \text{start}$ (`visited[x] == true`), `parent[x]` points to a vertex $p$ such that $(p, x) \in E$ and $\text{dist}[x] = \text{dist}[p] + 1$, forming a valid rooted shortest-path tree from `start`.
+
+#### b. Correctness Proof (3 Concise Steps)
+
+1. **Initialization (Before the first iteration):**
+   - Queue contains only $q = [\text{start}]$ with $\text{dist}[\text{start}] = 0 = \delta(\text{start}, \text{start})$, `visited[start] = true`, and `parent[start] = -1`.
+   - Two-layer property holds trivially ($0 \le 0 + 1$), and the predecessor tree is valid $\to$ Invariant holds.
+
+2. **Maintenance (During each iteration):**
+   - Let $u = v_1$ be dequeued from the front of $q$ with distance $d = \text{dist}[u]$. By the invariant, any remaining vertices in $q$ have distance $d$ or $d + 1$.
+   - For each unvisited neighbor $v \in \text{adj}[u]$ (`!visited[v]`):
+     - Since all vertices at distance $< d$ were already expanded, no shorter path to $v$ can exist; thus $\delta(\text{start}, v) = d + 1$.
+     - Setting `dist[v] = d + 1` and pushing $v$ to the back of $q$ appends elements of distance $d + 1$ behind existing elements of distance $d$ or $d + 1$, preserving the **Two-Layer Property**.
+     - Setting `parent[v] = u` links $v$ to $u$ where $\text{dist}[v] = \text{dist}[u] + 1$, preserving the **Predecessor Tree**.
+   - Already-visited neighbors (`visited[v] == true`) already achieved distance $\le d + 1$ earlier and are skipped $\to$ Invariant is preserved.
+
+3. **Termination (When the queue is empty):**
+   - `q.empty() == true` implies every vertex $x$ reachable from `start` has been visited with $\text{dist}[x] = \delta(\text{start}, x)$ and linked via `parent[x]`.
+   - Tracing `parent[]` from `target` back to `start` is guaranteed to terminate in $\delta(\text{start}, \text{target})$ steps and yield a minimum-edge path.
+
 ---
 
-# Academic Report: Time & Space Complexity Proof and Teach-Back on BFS & Shortest Path (VU THANH HUY)
+## 3. Unit Test Execution & AI Edge-Case Verification Summary
 
-## PART 1: MATHEMATICAL PROOF OF TIME AND SPACE COMPLEXITY O(V + E)
+### a. Reproducing Week-1 6-Node Hand Trace (Unit Test Output)
+Running our automated test suite (`tests/test_traversal.cpp`) on the exact 6-node directed graph from Week 1 ($V = \{A, B, C, D, E, F\}$, $E = \{(A,B), (A,C), (B,D), (C,F), (D,B), (D,E), (E,F)\}$) produces:
 
-### 1. Mathematical Model and Notation
-Synchronized with our core `Graph` representation, let $G = (V, E)$ be an unweighted graph (directed or undirected) with vertex set $V$ and edge set $E$:
-- For each vertex $u \in V$, let $\text{adj}[u]$ denote its adjacency list containing all outgoing neighbors $v$.
-- Out-degree of vertex $u$: $\text{deg}^+(u) = \vert{}\text{adj}[u]\vert{}$.
-- Shortest-path distance (in edge count) from source $s$ to vertex $u$ is denoted as $\delta(s, u)$.
-- **Handshaking Lemma:**
-  - For directed graphs: $\sum_{u \in V} \text{deg}^+(u) = E$.
-  - For undirected graphs: $\sum_{u \in V} \text{deg}(u) = 2E$.
+```text
+[TEST 1] Week-1 6-Node Graph Reproduction
+  -> BFS Traversal Order from A : A -> B -> C -> D -> F -> E   [PASS]
+  -> BFS Shortest Path (A to F) : A -> C -> F (2 edges)         [PASS]
+  -> Iterative DFS Order from A : A -> B -> D -> E -> F -> C   [PASS]
+  -> DFS Cycle Detection        : Cycle detected! Back-edge D->B [PASS]
 
----
+[TEST 2] BFS Edge Cases Verification
+  -> Edge Case 1 (Empty Graph V=0)       : Returned false safely [PASS]
+  -> Edge Case 2 (Source == Target A->A) : Path: A (0 edges)     [PASS]
+  -> Edge Case 3 (Unreachable Node F->A) : Returned false safely [PASS]
+```
 
-### 2. Time Complexity Proof: T(V, E) = O(V + E)
+### b. Critical Verification of AI Output (BFS Edge Cases)
 
-The total execution time of `bfsShortestPath` is decomposed into four distinct phases based on the actual loop structures in the code:
-
-$$T(V, E) = T_{\text{init}} + T_{\text{queue}} + T_{\text{edges}} + T_{\text{path}}$$
-
-#### (1) Initialization Cost ($T_{\text{init}}$)
-- Vertex index lookups via `getIndex(startName)` and `getIndex(targetName)`: Since `getIndex` performs a linear scan over the `names` vector of size $V$, each lookup strictly takes $O(V)$ time.
-- Allocating and initializing tracking arrays of size $V$:
-  - `visited`: Vector of size $V$, initialized to `false` $\to \Theta(V)$.
-  - `parent`: Vector of size $V$, initialized to `-1` $\to \Theta(V)$.
-  - `dist`: Vector of size $V$, initialized to `-1` $\to \Theta(V)$.
-- Initializing the source vertex `start` (`visited`, `dist`, `q.push`) takes $O(1)$ time.
-
-$$T_{\text{init}} = O(V) + \Theta(V) + O(1) = \Theta(V)$$
-
-#### (2) Queue Operations Cost ($T_{\text{queue}}$)
-- **Enqueue (`push`) Operations:**
-  - A neighbor $v$ is pushed into the FIFO queue `q` exclusively inside the conditional block `if (!visited[v])` (Lines 140–145).
-  - Immediately upon entering this block, `visited[v]` is set to `true` (Line 141).
-  - Because `visited[v]` transitions monotonically from `false` to `true` and is **never reset**, each vertex $v \in V$ satisfies `!visited[v]` at most once and is enqueued **at most once**.
-- **Dequeue (`pop`) Operations:**
-  - In each iteration of `while (!q.empty())` (Line 134), exactly one vertex $u$ is extracted via `q.front()` and removed via `q.pop()` (Lines 135–136).
-  - Since each vertex is enqueued at most once, each vertex $u \in V$ is dequeued **at most once**.
-- Queue operations (`push`, `pop`, `front`, `empty`) on `std::queue` run in $O(1)$ time.
-
-$$T_{\text{queue}} = \sum_{u \in V} \left( O(1)_{\text{push}} + O(1)_{\text{pop}} \right) = O(V)$$
-
-#### (3) Edge Examination Cost ($T_{\text{edges}}$)
-- When a vertex $u$ is dequeued, the inner loop `for (int v : adj[u])` (Line 139) iterates through all adjacent vertices in $\text{adj}[u]$, performing exactly $\text{deg}^+(u)$ iterations.
-- Inside the inner loop, checking `!visited[v]` and updating states requires $O(1)$ constant time per edge.
-- By the Handshaking Lemma, summing over all dequeued vertices $u \in V$:
-
-$$T_{\text{edges}} = \sum_{u \in V} \text{deg}^+(u) \times O(1) = O(E)$$
-
-#### (4) Shortest Path Reconstruction Cost ($T_{\text{path}}$)
-- After traversal, the backtracking loop `for (int curr = target; curr != -1; curr = parent[curr])` (Lines 154–156) traces predecessors from `target` back to `start`.
-- The shortest path length is bounded by $\delta(\text{start}, \text{target}) \le V - 1$.
-- Reversing the `path` vector (Line 157) takes time linear in path length:
-
-$$T_{\text{path}} = O(V)$$
-
-#### Total Time Complexity Conclusion:
-$$T(V, E) = \Theta(V) + O(V) + O(E) + O(V) = O(V + E)$$
+- **Identified AI Flaw:** The initial AI-generated BFS reconstruction traced `while (curr != start)` and unconditionally pushed `start` at the end without checking `if (!visited[target])`.
+- **How We Found Out:** When writing Unit Test 2 (Edge Case 3: unreachable target $F \to A$ where $F$ has out-degree 0), the AI code failed to detect unreachability and falsely returned path `A -> F` with distance 1. Furthermore, when `startName` was not in the graph (`getIndex == -1`), it caused an out-of-bounds vector crash (`visited[-1]`).
+- **Our Fix:** Added guard clauses `if (V == 0)` and `if (start == -1 || target == -1)`, enforced `if (!visited[target]) return false;` before backtracking, and unified the backtracking loop condition to `for (int curr = target; curr != -1; curr = parent[curr])`.
 
 ---
-
-### 3. Space Complexity Proof: S(V, E) = O(V + E)
-
-The total auxiliary memory footprint is governed by:
-
-$$S(V, E) = S_{\text{queue}} + S_{\text{arrays}}$$
-
-1. **FIFO Queue Memory ($S_{\text{queue}}$):**
-   - `std::queue<int> q` holds discovered frontier vertices.
-   - Worst-case scenario (Star Graph): All $V - 1$ neighbors are enqueued simultaneously on level 1.
-   $$S_{\text{queue}} \le V \times O(1) = O(V)$$
-2. **Auxiliary Tracking Vectors ($S_{\text{arrays}}$):**
-   - `visited`, `parent`, and `dist`: Vectors of size $V \to 3 \times O(V) = O(V)$.
-   - `order` and `path`: Output vectors holding at most $V$ elements $\to O(V)$.
-   $$S_{\text{arrays}} = O(V)$$
-
-*Note: The shared adjacency list $S_{\text{graph}} = O(V + E)$ is part of the class structure, but considering traversal overhead alone:*
-#### Total Space Complexity Conclusion:
-$$S(V, E) = O(V) + O(V) = O(V) \text{ auxiliary } \implies O(V + E) \text{ inclusive of graph}.$$
-
----
-
