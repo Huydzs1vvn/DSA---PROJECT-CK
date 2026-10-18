@@ -5,6 +5,35 @@
 
 ---
 
+# WEEK 2 REPORT: CORE IMPLEMENTATION
+
+## PART 1: GROUP PROGRESS SUMMARY
+
+### 1. Current Status & Core Implementation
+In Week 2, our group successfully implemented the core graph data structures and traversal algorithms required for the project, directly addressing the rubric's "Core algorithm/structure running" requirement:
+- **Graph Representation:** Built a flexible `Graph` class using an Adjacency List (`vector<vector<int>>`) that supports both directed and undirected graphs.
+- **Iterative DFS & Cycle Detection:** Implemented Depth-First Search using an explicit `std::stack` (strictly avoiding recursion) with a 3-color state tracking mechanism (`visited` and `inStack`) to correctly detect cycles via back-edges.
+- **BFS & Shortest Path:** Implemented Breadth-First Search using `std::queue` to compute the shortest path in unweighted graphs and reconstruct the exact route using a `parent[]` array.
+- **Testing & Verification:** Authored comprehensive Unit Tests that perfectly reproduce our 6-node graph hand-traces from Week 1. We also explicitly tested edge cases (empty graph, unreachable target, source equals target).
+
+### 2. Task Allocation (Week 2)
+
+| Member | Assigned Tasks | Completion |
+| :--- | :--- | :--- |
+| **Vũ Thành Huy** | - Implement BFS algorithm using `std::queue` and shortest path reconstruction via `parent[]` array.<br>- Write Unit Tests reproducing Week-1 BFS hand-trace and capture verifiable test output.<br>- Draft time & space complexity derivation $O(V + E)$ for BFS based on code loop structures.<br>- Identify, verify, and document AI errors regarding BFS edge cases (empty graph, unreachable node).<br>- Author Teach-back (line-level explanation, queue invariant) & compile Group Progress/Syllabus Mapping. | 100% |
+| **Lê Thiện Luân** | - Construct core `Graph` class using Adjacency List supporting directed/undirected graphs.<br>- Implement Iterative DFS using an explicit `std::stack` and Cycle Detection via active path tracking.<br>- Write Unit Tests reproducing Week-1 DFS hand-trace, verify back-edges, and capture test output.<br>- Draft time & space complexity derivation $O(V + E)$ for Iterative DFS.<br>- Identify, verify, and document AI logic errors regarding state backtracking in Iterative DFS.<br>- Author individual Teach-back (line-level explanation, stack loop invariant). | 100% |
+
+### 3. Syllabus Alignment Mapping
+
+| Syllabus Topic (Appendix A - Project #19) | Course Concept Exercised | Implementation Location in Repository |
+| :--- | :--- | :--- |
+| **Graphs (Representation)** | Adjacency List (`vector<vector<int>>`), Directed/Undirected switch, $O(V + E)$ space | `graph.cpp` (Lines 9–54: `struct Graph`, `addEdge`, `getIndex`) |
+| **Stacks (Lesson 8 - L8)** | Explicit `std::stack<pair<int, int>>` simulating recursion frames, LIFO backtracking, cycle detection (`visited` + `inStack`) | `graph.cpp` (Lines 55–110: `Graph::iterativeDFS`) |
+| **Queues (Lesson 8 - L8)** | FIFO `std::queue<int>` frontier expansion, Two-Layer distance property, `parent[]` shortest-path tree reconstruction | `graph.cpp` (Lines 112–159: `Graph::bfsShortestPath`) |
+| **Complexity Analysis (Lesson 2 - L2)** | Derivation of $T(V, E) = O(V + E)$ and $S(V, E) = O(V + E)$ from actual loop structures and Handshaking Lemma | `docs/WEEKLY_REPORT_2.md` (Part 2 & 3 of both members) |
+
+---
+
 # Academic Report: Time & Space Complexity Proof and Teach-Back on Iterative DFS (LE THIEN LUAN)
 
 ## PART 1: MATHEMATICAL PROOF OF TIME AND SPACE COMPLEXITY O(V + E)
@@ -255,3 +284,93 @@ At the start of each iteration of the loop `while (!st.empty())` (Line 75), the 
 3. **Termination (When the stack is empty):**
    - All vertices and edges reachable from source $s$ have been completely processed (`inStack = false`).
    - Every cycle (if any existed) was correctly flagged via back-edges pointing to `inStack == true` vertices. The algorithm terminates with 100% correctness.
+
+
+---
+
+---
+
+# Academic Report: Time & Space Complexity Proof and Teach-Back on BFS & Shortest Path (VU THANH HUY)
+
+## PART 1: MATHEMATICAL PROOF OF TIME AND SPACE COMPLEXITY O(V + E)
+
+### 1. Mathematical Model and Notation
+Synchronized with our core `Graph` representation, let $G = (V, E)$ be an unweighted graph (directed or undirected) with vertex set $V$ and edge set $E$:
+- For each vertex $u \in V$, let $\text{adj}[u]$ denote its adjacency list containing all outgoing neighbors $v$.
+- Out-degree of vertex $u$: $\text{deg}^+(u) = \vert{}\text{adj}[u]\vert{}$.
+- Shortest-path distance (in edge count) from source $s$ to vertex $u$ is denoted as $\delta(s, u)$.
+- **Handshaking Lemma:**
+  - For directed graphs: $\sum_{u \in V} \text{deg}^+(u) = E$.
+  - For undirected graphs: $\sum_{u \in V} \text{deg}(u) = 2E$.
+
+---
+
+### 2. Time Complexity Proof: T(V, E) = O(V + E)
+
+The total execution time of `bfsShortestPath` is decomposed into four distinct phases based on the actual loop structures in the code:
+
+$$T(V, E) = T_{\text{init}} + T_{\text{queue}} + T_{\text{edges}} + T_{\text{path}}$$
+
+#### (1) Initialization Cost ($T_{\text{init}}$)
+- Vertex index lookups via `getIndex(startName)` and `getIndex(targetName)`: Since `getIndex` performs a linear scan over the `names` vector of size $V$, each lookup strictly takes $O(V)$ time.
+- Allocating and initializing tracking arrays of size $V$:
+  - `visited`: Vector of size $V$, initialized to `false` $\to \Theta(V)$.
+  - `parent`: Vector of size $V$, initialized to `-1` $\to \Theta(V)$.
+  - `dist`: Vector of size $V$, initialized to `-1` $\to \Theta(V)$.
+- Initializing the source vertex `start` (`visited`, `dist`, `q.push`) takes $O(1)$ time.
+
+$$T_{\text{init}} = O(V) + \Theta(V) + O(1) = \Theta(V)$$
+
+#### (2) Queue Operations Cost ($T_{\text{queue}}$)
+- **Enqueue (`push`) Operations:**
+  - A neighbor $v$ is pushed into the FIFO queue `q` exclusively inside the conditional block `if (!visited[v])` (Lines 140–145).
+  - Immediately upon entering this block, `visited[v]` is set to `true` (Line 141).
+  - Because `visited[v]` transitions monotonically from `false` to `true` and is **never reset**, each vertex $v \in V$ satisfies `!visited[v]` at most once and is enqueued **at most once**.
+- **Dequeue (`pop`) Operations:**
+  - In each iteration of `while (!q.empty())` (Line 134), exactly one vertex $u$ is extracted via `q.front()` and removed via `q.pop()` (Lines 135–136).
+  - Since each vertex is enqueued at most once, each vertex $u \in V$ is dequeued **at most once**.
+- Queue operations (`push`, `pop`, `front`, `empty`) on `std::queue` run in $O(1)$ time.
+
+$$T_{\text{queue}} = \sum_{u \in V} \left( O(1)_{\text{push}} + O(1)_{\text{pop}} \right) = O(V)$$
+
+#### (3) Edge Examination Cost ($T_{\text{edges}}$)
+- When a vertex $u$ is dequeued, the inner loop `for (int v : adj[u])` (Line 139) iterates through all adjacent vertices in $\text{adj}[u]$, performing exactly $\text{deg}^+(u)$ iterations.
+- Inside the inner loop, checking `!visited[v]` and updating states requires $O(1)$ constant time per edge.
+- By the Handshaking Lemma, summing over all dequeued vertices $u \in V$:
+
+$$T_{\text{edges}} = \sum_{u \in V} \text{deg}^+(u) \times O(1) = O(E)$$
+
+#### (4) Shortest Path Reconstruction Cost ($T_{\text{path}}$)
+- After traversal, the backtracking loop `for (int curr = target; curr != -1; curr = parent[curr])` (Lines 154–156) traces predecessors from `target` back to `start`.
+- The shortest path length is bounded by $\delta(\text{start}, \text{target}) \le V - 1$.
+- Reversing the `path` vector (Line 157) takes time linear in path length:
+
+$$T_{\text{path}} = O(V)$$
+
+#### Total Time Complexity Conclusion:
+$$T(V, E) = \Theta(V) + O(V) + O(E) + O(V) = O(V + E)$$
+
+---
+
+### 3. Space Complexity Proof: S(V, E) = O(V + E)
+
+The total auxiliary memory footprint is governed by:
+
+$$S(V, E) = S_{\text{queue}} + S_{\text{arrays}}$$
+
+1. **FIFO Queue Memory ($S_{\text{queue}}$):**
+   - `std::queue<int> q` holds discovered frontier vertices.
+   - Worst-case scenario (Star Graph): All $V - 1$ neighbors are enqueued simultaneously on level 1.
+   $$S_{\text{queue}} \le V \times O(1) = O(V)$$
+2. **Auxiliary Tracking Vectors ($S_{\text{arrays}}$):**
+   - `visited`, `parent`, and `dist`: Vectors of size $V \to 3 \times O(V) = O(V)$.
+   - `order` and `path`: Output vectors holding at most $V$ elements $\to O(V)$.
+   $$S_{\text{arrays}} = O(V)$$
+
+*Note: The shared adjacency list $S_{\text{graph}} = O(V + E)$ is part of the class structure, but considering traversal overhead alone:*
+#### Total Space Complexity Conclusion:
+$$S(V, E) = O(V) + O(V) = O(V) \text{ auxiliary } \implies O(V + E) \text{ inclusive of graph}.$$
+
+---
+
+
