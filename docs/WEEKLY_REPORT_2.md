@@ -11,6 +11,14 @@ In Week 2, our group successfully implemented the core graph data structures and
 - **Iterative DFS & Cycle Detection:** Implemented Depth-First Search using an explicit `std::stack` (strictly avoiding recursion) with a 3-color state tracking mechanism (`visited` and `inStack`) to correctly detect cycles via back-edges.
 - **BFS & Shortest Path:** Implemented Breadth-First Search using `std::queue` to compute the shortest path in unweighted graphs and reconstruct the exact route using a `parent[]` array.
 - **Testing & Verification:** Authored comprehensive Unit Tests that perfectly reproduce our 6-node graph hand-traces from Week 1. We also explicitly tested edge cases (empty graph, unreachable target, source equals target).
+- **Repository Commit History (Week 2):**
+To verify our incremental progress and individual contributions, please refer to the following key commits:
+- [Add Iterative DFS and Graph structural base](https://github.com/Huydzs1vvn/DSA---PROJECT-CK/commit/4ee3b7c9a15abf1dc8120ef1335cfa82bbc476ee)
+- [Implement BFS algorithm and shortest path reconstruction](https://github.com/Huydzs1vvn/DSA---PROJECT-CK/commit/edacb944146b719b0b90f091bb57f5eb4412dd97)
+- [Add AI Edge Case corrections and Unit Tests (BFS/DFS)](https://github.com/Huydzs1vvn/DSA---PROJECT-CK/commit/82a09d0467df7bcdaeaf26b1928c40e8bba631d5)
+- [Merge all implementations and tests into src/main.cpp](https://github.com/Huydzs1vvn/DSA---PROJECT-CK/commit/f67e6d37f05e2677e2456821050a911f0b34ef32)
+
+*(Note regarding Week 1: We have already submitted `WEEKLY_REPORT_1.md` successfully on the system on Oct 11, 2026 at 23:41, and it is marked as 'Approved' on our dashboard. Please let us know if there is a system sync issue).*
 
 ### 2. Task Allocation (Week 2)
 
@@ -19,14 +27,22 @@ In Week 2, our group successfully implemented the core graph data structures and
 | **Vũ Thành Huy** | - Implement BFS algorithm using `std::queue` and shortest path reconstruction via `parent[]` array.<br>- Write Unit Tests reproducing Week-1 BFS hand-trace and capture verifiable test output.<br>- Draft time & space complexity derivation $O(V + E)$ for BFS based on code loop structures.<br>- Identify, verify, and document AI errors regarding BFS edge cases (empty graph, unreachable node).<br>- Author Teach-back (line-level explanation, queue invariant) & compile Group Progress/Syllabus Mapping. | 100% |
 | **Lê Thiện Luân** | - Construct core `Graph` class using Adjacency List supporting directed/undirected graphs.<br>- Implement Iterative DFS using an explicit `std::stack` and Cycle Detection via active path tracking.<br>- Write Unit Tests reproducing Week-1 DFS hand-trace, verify back-edges, and capture test output.<br>- Draft time & space complexity derivation $O(V + E)$ for Iterative DFS.<br>- Identify, verify, and document AI logic errors regarding state backtracking in Iterative DFS.<br>- Author individual Teach-back (line-level explanation, stack loop invariant). | 100% |
 
-### 3. Syllabus Alignment Mapping
+### 3. Plan for Week 3 (Features, Experiments & Analysis)
+Next week, we will focus on applying our DFS/BFS toolkit to real-world datasets and empirically proving our theoretical complexity analysis.
+
+| Member | Planned Tasks (Week 3) |
+| :--- | :--- |
+| **Vũ Thành Huy** | - Construct a real-world unweighted dataset (e.g., a simplified road map or social network).<br>- Run pathfinding experiments comparing BFS and DFS on the dataset to prove why BFS yields shortest paths while DFS does not.<br>- Benchmark BFS execution time on large-scale random graphs to empirically validate the $O(V + E)$ boundary. |
+| **Lê Thiện Luân** | - Construct a real-world dataset representing dependencies (e.g., course prerequisites or task scheduling).<br>- Apply the Cycle Detection DFS algorithm to find conflicts (circular dependencies) in the dataset.<br>- Benchmark DFS execution time and memory (maximum stack depth) on large-scale inputs to validate the $O(V + E)$ limits. |
+
+### 4. Syllabus Alignment Mapping
 
 | Syllabus Topic (Appendix A - Project #19) | Course Concept Exercised | Implementation Location in Repository |
 | :--- | :--- | :--- |
-| **Graphs (Representation)** | Adjacency List (`vector<vector<int>>`), Directed/Undirected switch, $O(V + E)$ space | `graph.cpp` (Lines 9–54: `struct Graph`, `addEdge`, `getIndex`) |
-| **Stacks (Lesson 8 - L8)** | Explicit `std::stack<pair<int, int>>` simulating recursion frames, LIFO backtracking, cycle detection (`visited` + `inStack`) | `graph.cpp` (Lines 55–110: `Graph::iterativeDFS`) |
-| **Queues (Lesson 8 - L8)** | FIFO `std::queue<int>` frontier expansion, Two-Layer distance property, `parent[]` shortest-path tree reconstruction | `graph.cpp` (Lines 112–159: `Graph::bfsShortestPath`) |
-| **Complexity Analysis (Lesson 2 - L2)** | Derivation of $T(V, E) = O(V + E)$ and $S(V, E) = O(V + E)$ from actual loop structures and Handshaking Lemma | `docs/WEEKLY_REPORT_2.md` (Part 2 & 3 of both members) |
+| **Graphs (Representation)** | Adjacency List (`vector<vector<int>>`), Directed/Undirected switch, $O(V + E)$ space | `src/main.cpp` (Lines 9–54: `struct Graph`, `addEdge`, `getIndex`) |
+| **Stacks (Lesson 8 - L8)** | Explicit `std::stack<pair<int, int>>` simulating recursion frames, LIFO backtracking, 3-state cycle detection (`visited` + `inStack`) | `src/main.cpp` (Lines 55–110: `Graph::iterativeDFS`) |
+| **Queues (Lesson 8 - L8)** | FIFO `std::queue<int>` frontier expansion, Two-Layer distance property, `parent[]` shortest-path tree reconstruction | `src/main.cpp` (Lines 112–159: `Graph::bfsShortestPath`) |
+| **Complexity Analysis (Lesson 2 - L2)** | Derivation of $T(V, E) = O(V + E)$ and $S(V, E) = O(V + E)$ from loop structures and Handshaking Lemma | `docs/WEEKLY_REPORT_2.md` (Part 2 & 3 of both members) |
 
 ---
 
