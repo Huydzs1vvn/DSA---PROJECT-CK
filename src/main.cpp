@@ -4,7 +4,9 @@
 #include <stack>
 #include <queue>
 #include <algorithm>
+#include <chrono>
 
+using namespace std::chrono;
 using namespace std;
 
 // Graph structure using Adjacency List
@@ -158,10 +160,67 @@ bool bfsShortestPath(const string& startName, const string& targetName,
         reverse(path.begin(), path.end());
         return true;
     }
+bool bfsOptimized(const string& startName, const string& targetName, int& shortestDist) {
+        if (V == 0) return false;
+        int start = getIndex(startName), target = getIndex(targetName);
+        if (start == -1 || target == -1) return false;
+
+        vector<bool> visited(V, false);
+        vector<int> dist(V, -1);
+        
+        // Tối ưu hóa: Dùng vector cấp phát sẵn thay vì queue
+        vector<int> q;
+        q.reserve(V); 
+        int head = 0;
+
+        visited[start] = true;
+        dist[start] = 0;
+        q.push_back(start);
+
+        while (head < (int)q.size()) {
+            int u = q[head++]; 
+            for (int v : adj[u]) {
+                if (!visited[v]) {
+                    visited[v] = true;
+                    dist[v] = dist[u] + 1;
+                    q.push_back(v);
+                }
+            }
+        }
+        
+        shortestDist = dist[target];
+        return visited[target];
+    }
 };
+
+// 1. Dataset thực tế: Mạng xã hội thu nhỏ
+Graph buildSocialNetwork() {
+    Graph g({"Huy", "Luan", "Kha", "Alice", "Bob", "Charlie"}, false);
+    g.addEdge("Huy", "Luan");
+    g.addEdge("Huy", "Kha");
+    g.addEdge("Luan", "Alice");
+    g.addEdge("Alice", "Bob");
+    g.addEdge("Kha", "Charlie");
+    g.addEdge("Charlie", "Bob");
+    return g;
+}
+
+// 2. Adversarial Input: Đồ thị hình sao ép queue phình to tối đa
+Graph buildStarGraph(int V) {
+    vector<string> names(V);
+    for (int i = 0; i < V; ++i) names[i] = to_string(i);
+    Graph g(names, false); 
+    for (int i = 1; i < V; ++i) {
+        g.addEdge("0", to_string(i)); // Đỉnh 0 nối với mọi đỉnh
+    }
+    return g;
+}
 
 // Main function: execute unit tests
 int main() {
+    // ==========================================
+    //         PHẦN TEST CỦA TUẦN 2
+    // ==========================================
     // 1. Đồ thị 6 đỉnh có hướng từ Hand-trace Tuần 1
     Graph g6({"A", "B", "C", "D", "E", "F"}, true);
     g6.addEdge("A", "B");
@@ -231,7 +290,52 @@ int main() {
     vector<pair<string, string>> dagBackEdges;
     bool dagCycle = dag.iterativeDFS("A", dagOrder, dagBackEdges);
 
-    cout << "  -> Cycle Detected    : " << (dagCycle ? "YES" : "NO") << " (Correct!)\n";
+    cout << "  -> Cycle Detected    : " << (dagCycle ? "YES" : "NO") << " (Correct!)\n\n";
+
+
+    // ==========================================
+    //         PHẦN TEST CỦA TUẦN 3
+    // ==========================================
+    cout << "================================================\n";
+    cout << "              START WEEK 3 TESTING              \n";
+    cout << "================================================\n\n";
+
+    // --- YÊU CẦU 1: SO SÁNH BFS VÀ DFS TRÊN DỮ LIỆU THỰC TẾ ---
+    cout << "--- 1. REAL-WORLD DATASET (Social Network) ---\n";
+    Graph socialGraph = buildSocialNetwork();
+    vector<string> bfsOrderW3, bfsPathW3, dfsOrderW3;
+    vector<pair<string, string>> dfsCyclesW3;
+    int distW3;
+    
+    cout << "Tim duong tu Huy den Bob:\n";
+    socialGraph.bfsShortestPath("Huy", "Bob", bfsOrderW3, bfsPathW3, distW3);
+    cout << "-> BFS Path: ";
+    for (const string& s : bfsPathW3) cout << s << " ";
+    cout << "(Khoang cach: " << distW3 << ")\n";
+
+    socialGraph.iterativeDFS("Huy", dfsOrderW3, dfsCyclesW3);
+    cout << "-> DFS Thu tu duyet: ";
+    for (const string& s : dfsOrderW3) cout << s << " ";
+    cout << "\n(DFS di lac sang nhanh cua Kha thay vi tim Bob nhanh nhat)\n\n";
+
+    // --- YÊU CẦU 2 & 3: ADVERSARIAL INPUT VÀ BENCHMARK TỐI ƯU ---
+    cout << "--- 2. BENCHMARK & OPTIMIZATION (Star Graph V=500000) ---\n";
+    int V_large = 500000;
+    Graph starGraph = buildStarGraph(V_large);
+    
+    // Đo thời gian BFS thường (std::queue)
+    auto start1 = high_resolution_clock::now();
+    starGraph.bfsShortestPath("0", to_string(V_large - 1), bfsOrderW3, bfsPathW3, distW3);
+    auto stop1 = high_resolution_clock::now();
+    auto duration1 = duration_cast<microseconds>(stop1 - start1);
+    cout << "BFS std::queue time : " << duration1.count() << " us\n";
+
+    // Đo thời gian BFS tối ưu (std::vector)
+    auto start2 = high_resolution_clock::now();
+    starGraph.bfsOptimized("0", to_string(V_large - 1), distW3);
+    auto stop2 = high_resolution_clock::now();
+    auto duration2 = duration_cast<microseconds>(stop2 - start2);
+    cout << "BFS optimized time  : " << duration2.count() << " us\n";
 
     return 0;
 }
