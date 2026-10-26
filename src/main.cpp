@@ -210,8 +210,11 @@ Graph buildStarGraph(int V) {
     vector<string> names(V);
     for (int i = 0; i < V; ++i) names[i] = to_string(i);
     Graph g(names, false); 
+    
+    // Tối ưu hóa: Nối cạnh trực tiếp bằng index để tránh O(V^2) khi tạo dữ liệu lớn
     for (int i = 1; i < V; ++i) {
-        g.addEdge("0", to_string(i)); // Đỉnh 0 nối với mọi đỉnh
+        g.adj[0].push_back(i);
+        g.adj[i].push_back(0);
     }
     return g;
 }
