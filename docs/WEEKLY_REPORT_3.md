@@ -1,3 +1,13 @@
+### Group Progress Summary (Week 3)
+In Week 3, our team successfully transitioned from core algorithm implementations to performance benchmarking and dataset analysis, fulfilling all requirements for the "Features, experiments & analysis" phase.
+
+- **Codebase Integration:** We finalized `main.cpp` by integrating all BFS and DFS features into a unified testing harness, ensuring both algorithms handle edge cases robustly.
+- **Dataset Construction:** We designed two real-world datasets (a Social Network and a Course Prerequisites dependency graph) to demonstrate the practical applications of our traversal toolkit.
+- **Adversarial Benchmarking:** We developed adversarial topologies (a 500,000-node Star Graph and a 200,000-node Linear Graph) to deliberately stress-test our algorithms and push the data structures to their theoretical $O(V+E)$ limits.
+- **Algorithm Optimization:** Both team members profiled their respective algorithms and successfully implemented memory optimizations. By using pre-allocated `std::vector` structures, we eliminated the overhead of dynamic allocations in standard queues and stacks.
+
+Detailed empirical measurements, theoretical comparisons, and edge-case evaluations are documented in our individual teach-back sections below.
+
 ### Plan for Week 3 (Features, Experiments & Analysis)
 Next week, we will focus on applying our DFS/BFS toolkit to real-world datasets and empirically proving our theoretical complexity analysis.
 
