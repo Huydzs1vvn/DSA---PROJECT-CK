@@ -193,6 +193,35 @@ bool bfsOptimized(const string& startName, const string& targetName, int& shorte
     }
 };
 
+// Tối ưu hóa: Dùng vector với reserve(V) thay stack để loại bỏ chi phí cấp phát phân đoạn của deque
+bool dfsOptimized(const Graph& g, int start, int& maxDepth) {
+    maxDepth = 0;
+    if (start < 0 || start >= g.V) return false;
+
+    vector<pair<int, int>> st;
+    st.reserve(g.V); // Tối ưu: Cấp phát trước bộ nhớ ngăn xếp
+    vector<bool> vis(g.V, false);
+
+    st.push_back({start, 0});
+    vis[start] = true;
+
+    while (!st.empty()) {
+        maxDepth = max(maxDepth, (int)st.size());
+        int u = st.back().first, &i = st.back().second;
+
+        if (i < (int)g.adj[u].size()) {
+            int v = g.adj[u][i++];
+            if (!vis[v]) {
+                vis[v] = true;
+                st.push_back({v, 0});
+            }
+        } else {
+            st.pop_back();
+        }
+    }
+    return false;
+}
+
 // 1. Dataset thực tế: Mạng xã hội thu nhỏ
 Graph buildSocialNetwork() {
     Graph g({"Huy", "Luan", "Kha", "Alice", "Bob", "Charlie"}, false);
@@ -217,6 +246,65 @@ Graph buildStarGraph(int V) {
         g.adj[i].push_back(0);
     }
     return g;
+}
+
+// 3. Dataset thực tế: Các môn học phần tiên quyết
+Graph buildCourseSchedule(bool introduceConflict = false) {
+    Graph g({"NMLT", "CTDL", "ThuatToan", "CSDL", "HDH", "AI", "CNPM", "KLTN"}, true);
+    g.addEdge("NMLT", "CTDL");
+    g.addEdge("CTDL", "ThuatToan");
+    g.addEdge("CTDL", "CSDL");
+    g.addEdge("ThuatToan", "HDH");
+    g.addEdge("ThuatToan", "AI");
+    g.addEdge("CSDL", "CNPM");
+    g.addEdge("HDH", "KLTN");
+    g.addEdge("CNPM", "KLTN");
+
+    if (introduceConflict) {
+        // Tạo xung đột phụ thuộc vòng tròn (Circular Dependency): KLTN -> NMLT (Deadlock)
+        g.addEdge("KLTN", "NMLT");
+    }
+    return g;
+}
+
+//4. Adversarial Input - Đồ thị suy biến dạng đường thẳng
+Graph buildLinearGraph(int V) {
+    Graph g({}, true);
+    g.V = V;
+    g.directed = true;
+    g.adj.resize(V);
+    for (int i = 0; i < V - 1; ++i) {
+        g.adj[i].push_back(i + 1);
+    }
+    return g;
+}
+
+//5. Benchmark DFS chuẩn, đo độ sâu ngăn xếp tối đa
+bool dfsStandard(const Graph& g, int start, int& maxDepth) {
+    maxDepth = 0;
+    if (start < 0 || start >= g.V) return false;
+
+    stack<pair<int, int>> st;
+    vector<bool> vis(g.V, false);
+
+    st.push({start, 0});
+    vis[start] = true;
+
+    while (!st.empty()) {
+        maxDepth = max(maxDepth, (int)st.size());
+        int u = st.top().first, &i = st.top().second;
+
+        if (i < (int)g.adj[u].size()) {
+            int v = g.adj[u][i++];
+            if (!vis[v]) {
+                vis[v] = true;
+                st.push({v, 0});
+            }
+        } else {
+            st.pop();
+        }
+    }
+    return false;
 }
 
 // Main function: execute unit tests
@@ -339,6 +427,36 @@ int main() {
     auto stop2 = high_resolution_clock::now();
     auto duration2 = duration_cast<microseconds>(stop2 - start2);
     cout << "BFS optimized time  : " << duration2.count() << " us\n";
+    
+    // Yêu cầu 1 và 2 (phần của Luân): Test phát hiện xung đột chu trình (Deadlock) trên dataset môn học
+    cout << "\n--- 3. REAL-WORLD DATASET (Course Prerequisites) ---\n";
+    Graph validSchedule = buildCourseSchedule(false), conflictSchedule = buildCourseSchedule(true);
+    vector<string> orderW3; vector<pair<string, string>> conflictEdges;
 
+    bool conflictA = validSchedule.iterativeDFS("NMLT", orderW3, conflictEdges);
+    cout << "Kich ban A (DAG hop le)    : " << (!conflictA ? "Khong co xung dot [PASS]\n" : "[FAIL]\n");
+
+    bool conflictB = conflictSchedule.iterativeDFS("NMLT", orderW3, conflictEdges);
+    cout << "Kich ban B (Loi xung dot)  : " << (conflictB && !conflictEdges.empty() ? "Phat hien Deadlock: " + conflictEdges[0].first + " -> " + conflictEdges[0].second + " [PASS]\n\n" : "[FAIL]\n\n");
+    
+    // Yêu cầu 3 và 4 (phần của Luân): Benchmark trên đồ thị đường thẳng V = 200, 000, đo Max Stack Depth = 200, 000 và so sánh thời gian giữa dfsStandard và dfsOptimized 
+    cout << "--- 4. BENCHMARK & OPTIMIZATION (Linear Graph V=200000) ---\n";
+    int V_linear = 200000;
+    Graph linearGraph = buildLinearGraph(V_linear);
+    int maxDepthStd = 0, maxDepthOpt = 0;
+
+    // Đo thời gian DFS thường (std::stack)
+    auto startDfs1 = high_resolution_clock::now();
+    dfsStandard(linearGraph, 0, maxDepthStd);
+    auto stopDfs1 = high_resolution_clock::now();
+    auto durationDfs1 = duration_cast<microseconds>(stopDfs1 - startDfs1);
+    cout << "DFS std::stack time : " << durationDfs1.count() << " us (Max Stack Depth: " << maxDepthStd << " / " << V_linear << ")\n";
+
+    // Đo thời gian DFS tối ưu (std::vector)
+    auto startDfs2 = high_resolution_clock::now();
+    dfsOptimized(linearGraph, 0, maxDepthOpt);
+    auto stopDfs2 = high_resolution_clock::now();
+    auto durationDfs2 = duration_cast<microseconds>(stopDfs2 - startDfs2);
+    cout << "DFS optimized time  : " << durationDfs2.count() << " us (Max Stack Depth: " << maxDepthOpt << " / " << V_linear << ")\n";
     return 0;
 }
