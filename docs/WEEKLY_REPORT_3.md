@@ -54,3 +54,31 @@ While the standard `std::queue<int>` (implemented via `std::deque`) has an $O(1)
 | Optimized BFS | `std::vector<int>` | 5,883 $\mu$s | **KEPT**. Over 3x faster. Pre-allocating contiguous memory eliminated the chunk-allocation bottleneck, aligning empirical performance perfectly with the theoretical $O(V+E)$ ideal. |
 
 ![Benchmark Results](images/week3_bfs_benchmark.png)
+
+
+### Week 3 (Lê Thiện Luân) - DFS & Optimization
+
+### 1. Real-World Dataset (Course Prerequisites) & Cycle Detection
+
+I constructed a course prerequisite graph representing academic module dependencies: `NMLT`, `CTDL`, `ThuatToan`, `CSDL`, `HDH`, `AI`, `CNPM`, and `KLTN`.
+
+* **Cycle Detection Search:** I applied the Depth-First Search algorithm with an `inStack` tracking array (`iterativeDFS`) to detect potential conflicts (circular dependencies or deadlocks) within the curriculum structure.
+* **Theoretical Justification:** DFS is ideal for dependency analysis and cycle detection because it explores deeply along each branch using an active call/execution stack. By maintaining a boolean `inStack` state for vertices on the current path, any edge pointing to a node currently in `inStack` immediately signifies a Back-Edge (circular dependency $KLTN \rightarrow NMLT$), violating the Directed Acyclic Graph (DAG) property.
+* **Scenarios Handled (Verified in Test 3):**
+  * *Valid DAG (Scenario A):* Verified that a standard curriculum flow operates without false positive cycle flags.
+  * *Circular Dependency / Deadlock (Scenario B):* Successfully detected circular dependencies ($KLTN \rightarrow NMLT$) and identified the exact back-edge causing the conflict.
+
+### 2. Benchmark & Optimization (Empirical vs. Theoretical)
+
+To test the $\mathcal{O}(V + E)$ theoretical complexity under extreme conditions, I designed an adversarial "Linear Graph" ($V = 200,000$) where edges form a single chain $0 \rightarrow 1 \rightarrow 2 \rightarrow \dots \rightarrow V-1$. This topology forces maximum recursion depth and memory usage, expanding the stack to $V$ frames.
+
+**Optimization Attempt:** While standard `std::stack<pair<int, int>>` (backed by `std::deque`) provides theoretical $\mathcal{O}(1)$ push/pop operations, its underlying segmented/chunked dynamic memory allocation introduces notable overhead during deep traversals. I optimized this by replacing `std::stack` with a pre-allocated `std::vector<pair<int, int>>` acting as a stack with `st.reserve(V)` to ensure contiguous memory allocation.
+
+#### Results:
+
+| Algorithm | Data Structure | Maximum Stack Depth | Execution Time | Evaluation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Standard DFS** | `std::stack<pair<int, int>>` | 200,000 / 200,000 | 21056 $\mu s$ | High overhead due to dynamic memory chunk allocations in `std::deque`. |
+| **Optimized DFS** | `std::vector<pair<int, int>>` | 200,000 / 200,000 | 14054 $\mu s$ | Performance improved. Pre-allocating contiguous memory via `reserve(V)` eliminated dynamic allocation bottlenecks, matching empirical performance with theoretical $\mathcal{O}(V + E)$ expectations. |
+
+![Benchmark Results](images/Week3_DFS_benchmark.jpg)
