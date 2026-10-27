@@ -8,13 +8,26 @@ In Week 3, our team successfully transitioned from core algorithm implementation
 
 Detailed empirical measurements, theoretical comparisons, and edge-case evaluations are documented in our individual teach-back sections below.
 
-### Plan for Week 3 (Features, Experiments & Analysis)
+### Week 3 Objectives & Task Allocation
 Next week, we will focus on applying our DFS/BFS toolkit to real-world datasets and empirically proving our theoretical complexity analysis.
 
 | Member | Planned Tasks (Week 3) |
 | :--- | :--- |
 | **Vũ Thành Huy** | - Construct a real-world unweighted dataset (e.g., a simplified road map or social network).<br>- Run pathfinding experiments comparing BFS and DFS on the dataset to prove why BFS yields shortest paths while DFS does not.<br>- Benchmark BFS execution time on large-scale random graphs **and adversarial inputs (e.g., star graphs or highly dense graphs)** to empirically validate the $O(V + E)$ boundary.<br>- **Attempt at least one optimization for BFS (e.g., pre-allocating queue size or tweaking data structures) and document the performance data (kept or rejected).** |
 | **Lê Thiện Luân** | - Construct a real-world dataset representing dependencies (e.g., course prerequisites or task scheduling).<br>- Apply the Cycle Detection DFS algorithm to find conflicts (circular dependencies) in the dataset.<br>- Benchmark DFS execution time and memory (maximum stack depth) on large-scale inputs **and adversarial inputs (e.g., degenerate linear graphs $1 \to 2 \to \dots \to V$)** to validate the $O(V + E)$ limits.<br>- **Attempt at least one optimization for DFS (e.g., adjacency list representations) and document the performance data (kept or rejected).** |
+
+### Key Commits (Week 3)
+- `137a149` Tối ưu DFS, thêm dữ liệu thực tế, adversarial test và đo hiệu năng DFS cho tuần 3
+- `ce68a96` Sửa lỗi O(V^2) gây treo máy trong hàm buildStarGraph
+- `56f0d5c` Thêm dữ liệu thực tế, adversarial test và đo hiệu năng BFS cho Tuần 3
+
+### Plan for Week 4 (Finalize, Reflect & Prepare Defense)
+Next week is the final phase, focusing strictly on project wrap-up and oral defense preparation. No new features will be implemented.
+
+| Member | Planned Tasks (Week 4) |
+| :--- | :--- |
+| **Vũ Thành Huy** | - Finalize time/space complexity derivation $O(V+E)$.<br>- Draft 10 anticipated defense questions & answers (Self-quiz).<br>- Write personal reflection (hardest challenge, what to change with 2 more weeks).<br>- Compile final AI usage log. |
+| **Lê Thiện Luân** | - Map every project requirement to its exact code location.<br>- Draft 10 anticipated defense questions & answers (Self-quiz).<br>- Write personal reflection (hardest challenge, what to change with 2 more weeks).<br>- Compile final AI usage log. |
 
 
 ### Week 3 (Vũ Thành Huy) - BFS & Optimization
