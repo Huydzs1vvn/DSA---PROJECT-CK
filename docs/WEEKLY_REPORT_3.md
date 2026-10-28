@@ -42,21 +42,20 @@ I optimized this by replacing it with a `std::vector<int>` and calling `reserve(
 
 ### Week 3 (Lê Thiện Luân) - DFS & Optimization
 
-### 1. Real-World Dataset (Course Prerequisites) & Cycle Detection
+### 1. Real-World dataset and cycle detection
 
-I constructed a course prerequisite graph representing academic module dependencies: `NMLT`, `CTDL`, `ThuatToan`, `CSDL`, `HDH`, `AI`, `CNPM`, and `KLTN`.
+* **Building the data:** I created a directed graph to represent prerequisite courses, including: `NMLT`, `CTDL`, `ThuatToan`, `CSDL`, `HDH`, `AI`, `CNPM`, and `KLTN`.
+* **Checking for cycles:** I used an iterative Depth-First Search (`iterativeDFS`) with an `inStack` array to spot circular dependencies (deadlocks) in the curriculum.
+* **How it works:** DFS works great here because it goes deep down each learning path. By keeping track of active courses in `inStack`, if the algorithm runs into a course that points back to one currently being taken, it finds a **cycle** (like $KLTN \rightarrow NMLT$), which blocks progress.
+* **Test results:** 
+  * *Normal path (Scenario A):* The code ran smoothly without raising any false alarms.
+  * *Circular dependency (Scenario B):* It correctly caught the deadlock ($KLTN \rightarrow NMLT$) and pointed right to the edge causing the issue.
 
-* **Cycle Detection Search:** I applied the Depth-First Search algorithm with an `inStack` tracking array (`iterativeDFS`) to detect potential conflicts (circular dependencies or deadlocks) within the curriculum structure.
-* **Theoretical Justification:** DFS is ideal for dependency analysis and cycle detection because it explores deeply along each branch using an active call/execution stack. By maintaining a boolean `inStack` state for vertices on the current path, any edge pointing to a node currently in `inStack` immediately signifies a Back-Edge (circular dependency $KLTN \rightarrow NMLT$), violating the Directed Acyclic Graph (DAG) property.
-* **Scenarios Handled (Verified in Test 3):**
-  * *Valid DAG (Scenario A):* Verified that a standard curriculum flow operates without false positive cycle flags.
-  * *Circular Dependency / Deadlock (Scenario B):* Successfully detected circular dependencies ($KLTN \rightarrow NMLT$) and identified the exact back-edge causing the conflict.
+### 2. Benchmark and simple performance optimization
 
-### 2. Benchmark & Optimization (Empirical vs. Theoretical)
-
-To test the $\mathcal{O}(V + E)$ theoretical complexity under extreme conditions, I designed an adversarial "Linear Graph" ($V = 200,000$) where edges form a single chain $0 \rightarrow 1 \rightarrow 2 \rightarrow \dots \rightarrow V-1$. This topology forces maximum recursion depth and memory usage, expanding the stack to $V$ frames.
-
-**Optimization Attempt:** While standard `std::stack<pair<int, int>>` (backed by `std::deque`) provides theoretical $\mathcal{O}(1)$ push/pop operations, its underlying segmented/chunked dynamic memory allocation introduces notable overhead during deep traversals. I optimized this by replacing `std::stack` with a pre-allocated `std::vector<pair<int, int>>` acting as a stack with `st.reserve(V)` to ensure contiguous memory allocation.
+* **Pushing the limits:** To see how well the code handles heavy stress, I built a long linear graph with $200,000$ connected nodes ($0 \rightarrow 1 \rightarrow \dots \rightarrow V-1$). This forces the stack to stretch to its maximum depth.
+* **The problem:** The standard `std::stack` is easy to use, but its default dynamic memory allocation slows things down when going really deep.
+* **The fix:** I switched to `std::vector` and used `reserve(V)` to allocate memory in advance. This made the traversal run much faster and eliminated memory slowdowns on giant graphs.
 
 #### Results:
 
