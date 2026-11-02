@@ -1,5 +1,20 @@
 # DSA Final Project - Weekly Report 3
 
+### Group Progress Summary (Week 4)
+This week, our group successfully wrapped up the project. We strictly followed the finalized Week 4 plan without implementing any new features. We completed the final $\mathcal{O}(V+E)$ complexity derivations, documented real-world limitations, and constructed visual traversal diagrams. Furthermore, we mapped every project requirement to its exact code location and prepared 20 anticipated defense questions (10 per member) to ensure oral defense readiness.
+
+### Syllabus Alignment Mapping (Final Project Wrap-up)
+| Topic | Implementation & Documentation |
+| :--- | :--- |
+| **Graphs & Traversal** | Complete Requirement-to-Code Mapping for Adjacency List, BFS, and Iterative DFS. |
+| **Complexity** | Finalized formal derivation of $\mathcal{O}(V+E)$ time and space complexity bounds. |
+| **Memory Optimization** | Documented limitations regarding string identifiers and in-memory scaling constraints. |
+
+### Key Commits (Week 4)
+- `d2076ce` Cập nhật sơ đồ DoThi.png và phần hạn chế đề tài cho Tuần 4
+- `bb8b5c6` thêm mục mapping project requirements to code
+- `6b10ba3` Bổ sung 10 câu hỏi Q&A và Reflection
+
 ### Group Progress Summary (Week 3)
 This week, we successfully finished the testing and benchmarking phase for both BFS and DFS. We tested our algorithms on real-world datasets (Social Network and Course Prerequisites) to make sure they work correctly. 
 To test the $O(V+E)$ time limit, we generated massive adversarial graphs (a 500,000-node Star Graph and a 200,000-node Linear Graph). We both noticed that dynamic memory allocation slows down standard structures like `std::queue` and `std::stack`. By switching to pre-allocated `std::vector` with `reserve(V)`, we made both algorithms run much faster.
