@@ -32,7 +32,7 @@ Our BFS and DFS implementations meet all core DSA requirements, but have the fol
 ---
 ## LE THIEN LUAN REPORT
 
-## 1. 10 Defense Q&A pairs
+### 1. 10 Defense Q&A pairs
 
 1. **Why use iterative DFS (with a stack) instead of recursion?**
    * **Answer:** Recursion can easily crash the program (**Stack Overflow**) on deep graphs. Using a stack on the heap is safer and lets us measure the exact stack depth.
@@ -68,11 +68,27 @@ Our BFS and DFS implementations meet all core DSA requirements, but have the fol
 10. **What AI code bug did you find and fix?**
     * **Answer:** The AI forgot to set `inStack[u] = false` when popping node `u` during backtracking. This caused finished nodes to be mistaken for active nodes, triggering false cycle alarms.
 
----
-
-## 2. Personal Reflection
+### 2. Personal Reflection
 
 * **Working challenge:** Managing neighbor pointer references (`int& i`) inside the stack to eliminate recursion correctly. Also, optimizing memory so the 200,000-node benchmark runs smoothly without lag.
 * **If given 2 more weeks:**
   1. Build a simple visualizer to show nodes being pushed and popped from the stack in real-time.
   2. Use a bitset instead of boolean arrays to save memory on multi-million node graphs.
+
+### 3. Mapping project requirements to code
+
+| No. | Project requirement | Code location (`main.cpp`) | Simple explanation |
+| :---: | :--- | :--- | :--- |
+| **1** | Graph storage | Lines 13–56 | Stores the graph using an adjacency list (`vector<vector<int>> adj`) for both directed and undirected graphs. |
+| **2** | Non-recursive DFS | Lines 59–114 | Uses a loop and a custom `std::stack` instead of recursion to prevent system crashes. |
+| **3** | Cycle detection (deadlock) | Lines 66, 75, 94, 98, 108 | Uses an `inStack[]` array to track active nodes on the path. If we hit a node where `inStack == true`, a **cycle** is found. |
+| **4** | BFS & shortest path | Lines 115–162 | Implements BFS traversal using `std::queue` and reconstructs the shortest path via the `parent[]` array. |
+| **5** | BFS optimization | Lines 163–194 | Replaces `std::queue` with `std::vector` and `reserve(V)` to remove dynamic memory allocation overhead. |
+| **6** | DFS memory optimization | Lines 197–223 | Replaces `std::stack` with `std::vector` and `reserve(V)` to allocate contiguous memory, making the code run faster. |
+| **7** | Real-world social network dataset | Lines 226–235, 394–410 | Builds a 6-node social network to test BFS shortest path search from Huy to Bob. |
+| **8** | Large-scale benchmark dataset (BFS) | Lines 238–250, 413–422 | Generates a 500,000-node star graph to stress-test queue capacity and prove O(V+E) time limit. |
+| **9** | Real-world course dataset | Lines 252–268, 431–440 | Simulates course prerequisites and creates a circular dependency scenario (deadlock: Course A needs B, Course B needs A). |
+| **10** | Large-scale benchmark dataset (DFS) | Lines 271–280 | Creates a linear graph with 200,000 connected nodes to force the stack to hold all nodes at once. |
+| **11** | Runtime & stack depth test | Lines 283–308, 442–461 | Measures max stack depth and compares execution time between standard and optimized code. |
+| **12** | BFS edge case verification | Lines 358–384 | Tests boundary cases: empty graph (V = 0), source equals target (A → A), and unreachable target (F → A). |
+| **13** | BFS performance benchmark | Lines 413–429 | Measures and compares execution time between standard `std::queue` BFS and optimized `std::vector` BFS on 500,000 nodes. |
