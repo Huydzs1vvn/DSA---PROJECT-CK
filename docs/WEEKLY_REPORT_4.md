@@ -30,6 +30,38 @@ Our BFS and DFS implementations meet all core DSA requirements, but have the fol
 - **Unweighted-Only for BFS shortest paths:** Our BFS correctly resolves shortest paths based on edge counts. However, it cannot handle weighted networks (e.g. travel time, distance), which would require Dijkstra.
 
 ---
+
+## VU THANH HUY REPORT
+
+### 1. 10 Defense Q&A pairs (BFS & Optimizations)
+1. **Why does BFS guarantee the shortest path in unweighted graphs?**
+   * **Answer:** BFS explores nodes level-by-level based on their edge distance from the source. The first time the algorithm reaches the target node, it is guaranteed to be via the shortest possible path (minimum number of edges).
+2. **How do you reconstruct the exact path from source to target?**
+   * **Answer:** I use a `parent[]` array. When discovering a new node `v` from node `u`, I record `parent[v] = u`. After reaching the target, I backtrack from `target` to `start` using this array, then reverse the sequence.
+3. **What is the time complexity of your BFS implementation?**
+   * **Answer:** It runs in $\mathcal{O}(V + E)$ time. Every vertex is enqueued/dequeued at most once ($\mathcal{O}(V)$), and every adjacent edge is checked exactly once across the whole traversal ($\mathcal{O}(E)$).
+4. **Why did the 500,000-node Star Graph cause the program to freeze initially?**
+   * **Answer:** It was an $\mathcal{O}(V^2)$ bug during graph construction. The AI suggested building the graph by repeatedly calling `addEdge(u, v)`. However, `addEdge` uses `getIndex()`, which does a linear string search. Running this 500,000 times froze the machine. I fixed it by bypassing string lookups and pushing directly to the adjacency list.
+5. **Explain your memory optimization using `std::vector` instead of `std::queue`.**
+   * **Answer:** Standard `std::queue` allocates memory dynamically in chunks, which slows down execution on massive graphs (18,929 $\mu$s). By switching to a `std::vector` and using `reserve(V)`, I pre-allocated a single continuous block of memory. This dropped the time to 5,883 $\mu$s.
+6. **How does your BFS handle an unreachable target node?**
+   * **Answer:** After the queue empties, the code checks `if (!visited[target]) return false;`. This prevents the path reconstruction loop from triggering an out-of-bounds error or infinite loop.
+7. **Why did you use an Adjacency List instead of an Adjacency Matrix?**
+   * **Answer:** Real-world networks (like social graphs or road maps) are sparse. An Adjacency Matrix would waste $\mathcal{O}(V^2)$ space (mostly zeros). The Adjacency List only uses $\mathcal{O}(V + E)$ space and allows iterating over actual neighbors directly.
+8. **What happens if the start or target node doesn't exist in the graph?**
+   * **Answer:** The `getIndex()` function will return `-1`. I added a guard clause `if (start == -1 || target == -1) return false;` at the very beginning to safely terminate the function.
+9. **What is the loop invariant for the BFS queue?**
+   * **Answer:** At any point, the queue contains nodes from at most two consecutive distance layers (e.g., distance $d$ and distance $d+1$), and they are strictly ordered.
+10. **What AI bug did you find during edge-case testing?**
+    * **Answer:** The AI's backtracking code unconditionally pushed the `start` node at the end without checking if the target was actually visited. If the target was unreachable, it falsely returned a 1-edge path. I added the unreachable check to fix this.
+
+### 2. Personal Reflection
+* **Working challenge:** The hardest part was bridging the gap between theory and hardware reality. Theoretical $\mathcal{O}(V+E)$ complexity looks perfect on paper, but standard STL containers (`std::queue`) introduced hidden dynamic allocation bottlenecks that only surfaced during the 500,000-node stress test. Identifying the $\mathcal{O}(V^2)$ string search bug during data generation was a massive learning moment.
+* **If given 2 more weeks:**
+  1. I would implement an `unordered_map<string, int>` for vertex lookups to reduce `getIndex()` from $\mathcal{O}(V)$ to $\mathcal{O}(1)$.
+  2. I would extend the pathfinding algorithm to support weighted edges by implementing Dijkstra's algorithm.
+
+---
 ## LE THIEN LUAN REPORT
 
 ### 1. 10 Defense Q&A pairs
