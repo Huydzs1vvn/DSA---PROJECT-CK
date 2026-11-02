@@ -92,3 +92,14 @@ Our BFS and DFS implementations meet all core DSA requirements, but have the fol
 | **11** | Runtime & stack depth test | Lines 283–308, 442–461 | Measures max stack depth and compares execution time between standard and optimized code. |
 | **12** | BFS edge case verification | Lines 358–384 | Tests boundary cases: empty graph (V = 0), source equals target (A → A), and unreachable target (F → A). |
 | **13** | BFS performance benchmark | Lines 413–429 | Measures and compares execution time between standard `std::queue` BFS and optimized `std::vector` BFS on 500,000 nodes. |
+
+### 4. Visualization of traversal order
+
+![BFS Traversal Order](images/DFS-Visualise.jpg)
+
+*Traversal Order details:*
+
+- **DFS visits A (1)**, then dives deep into its first neighbor **B (2)**.
+- From **B**, it continues deeper to **D (3)**, then **E (4)**, and reaches **F (5)**.
+- After backtracking back to **A**, it explores the remaining unvisited neighbor **C (6)**.
+- **Thus, the visit sequence is:** `A (1) -> B (2) -> D (3) -> E (4) -> F (5) -> C (6)`.
